@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <title>Draw</title>
+</head>
+<body>
+  <canvas
+    id="cx"
+    style="display: block; margin: 0 auto; border: 1px solid gray;"
+    width="500" height="500">
+  </canvas>
+  <button id="get">get</button>
+  <button id="put">put</button>
+  <script>
+    var c = document.querySelector('#cx');
+    var get = document.querySelector("#get");
+    var put = document.querySelector("#put");
+
+    var strokeX = [][];
+
+    var paint = false;
+    var counter = 0;
+
+    var imgData;
+    var ctx = c.getContext("2d");
+
+    c.addEventListener('mousedown', function(e) {
+      paint = true;
+      saveStroke(e);
+    })
+
+    c.addEventListener('mousemove', function(e){
+      if (paint) {
+        saveStroke(e);
+        counter++;
+      }
+
+      if(counter > 10) {
+        drawStroke(strokeX, strokeY);
+        counter = 0;
+      }
+    })
+
+    c.addEventListener('mouseup', function(e){
+      paint = false;
+      drawStroke(strokeX, strokeY);
+      clearStroke();
+    })
+
+    get.addEventListener('click', function(e){
+      imgData = ctx.getImageData(0, 0, 500, 500);
+    })
+    put.addEventListener('click', function(e){
+      ctx.putImageData(imgData, 0, 0);
+    })
+
+    function drawStroke(ax, ay){
+      ctx.beginPath();
+      ctx.moveTo(ax[0], ay[0]);
+      for (var i = 1; i < strokeX.length; i++) {
+        ctx.lineTo(ax[i], ay[i]);
+      }
+      ctx.stroke();
+    }
+
+    function saveStroke(e){
+      strokeX.push(e.offsetX);
+      strokeY.push(e.offsetY);
+    }
+
+    function clearStroke(){
+      strokeX = [];
+      strokeY = [];
+      counter = 0;
+    }
+
+  </script>
+</body>
+</html>
