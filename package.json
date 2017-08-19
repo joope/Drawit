@@ -1,0 +1,28 @@
+{
+  "name": "drawit",
+  "version": "1.0.0",
+  "description": "Shared drawing pad",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joope/Drawit.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/joope/Drawit/issues"
+  },
+  "homepage": "https://github.com/joope/Drawit#readme",
+  "dependencies": {
+    "express": "^4.15.4",
+    "redis": "^2.8.0",
+    "ws": "^3.1.0"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^3.0.2",
+    "utf-8-validate": "^3.0.3"
+  }
+}
