@@ -15,9 +15,13 @@
     id="cx"
     style="
       display: block; 
-      margin: 10px auto 10px auto;
-      background-color: beige;"
-    width="500" height="500">
+      margin: 0 auto 10px auto;
+      background-color: beige;
+      width: 100%;
+      max-width: 1000px;
+      " 
+    width="500"
+    height="500">
   </canvas>
   <div 
     class="wheel" 
@@ -64,6 +68,7 @@
     };
 
     var c = document.querySelector('#cx');
+    var c_w = 500;
 
     var stroke = {
       'x': [], 
@@ -77,7 +82,7 @@
 
     var imgData;
     var ctx = c.getContext("2d");
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true;
     
     c.addEventListener('touchstart', startStroke);
     c.addEventListener('touchmove', moveStroke);
@@ -100,7 +105,7 @@
       }
     }
 
-    function drawStroke(s){
+    function drawStroke(s) {
       ctx.strokeStyle = s.color;
       ctx.beginPath();
       ctx.moveTo(s.x[0], s.y[0]);
@@ -112,6 +117,7 @@
     
     function startStroke(e){
       paint = true;
+      console.log(e);
       saveCoordinates(e);
     }
     
@@ -143,17 +149,22 @@
     }
     
     function saveCoordinates(e) {
+      var x, y;
       if (e.touches) {
         if (e.touches.length == 1) {
           var touch = e.touches[0];
-          stroke.x.push(touch.pageX-touch.target.offsetLeft); //minus border width
-          stroke.y.push(touch.pageY-touch.target.offsetTop);
+          x = touch.pageX-touch.target.offsetLeft; //minus border width
+          y = touch.pageY-touch.target.offsetTop;
           e.preventDefault();
         }
       } else {
-        stroke.x.push(e.offsetX);
-        stroke.y.push(e.offsetY);
+        x = e.offsetX;
+        y = e.offsetY;
       }
+      var scale = c_w / c.offsetWidth;
+      console.log(scale, x, y);
+      stroke.x.push(parseInt(scale * x));
+      stroke.y.push(parseInt(scale * y));
     }
     
     function socketSend(type, data){
