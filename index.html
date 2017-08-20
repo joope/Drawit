@@ -2,21 +2,49 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="initial-scale=1.0" />
   <title>Draw</title>
 </head>
-<body style="margin: 0;">
+<body 
+  style="
+    margin: 0; 
+    user-select: none;
+    background-color: beige;">
+    
   <canvas
     id="cx"
-    style="display: block; margin: 0 auto; border: 10px solid gray;"
+    style="
+      display: block; 
+      margin: 10px auto 10px auto;
+      background-color: white;"
     width="500" height="500">
   </canvas>
-  <button id="get">get</button>
-  <button id="put">put</button>
+  <div 
+    class="wheel" 
+    id="colorWheel" 
+    style="
+      width: 320px;
+      height: 320px;
+      margin: 10px auto;">
+  </div>
+  <script src="iro.min.js"></script>
   <script>
 
-    var ws = new WebSocket("ws://" + location.hostname + ":8082");
+    var colorWheel = iro.ColorWheel("#colorWheel", {
+      width: 320,
+      height: 320,
+      padding: 4,
+      sliderMargin: 24,
+      markerRadius: 8,
+      color: "#25c900",
+      CSS: {} // apply colors to any elements
+    });
     
+    colorWheel.on("color:change", function(color){
+      stroke.color = color.hexString;
+    });
+    
+    var ws = new WebSocket("ws://" + location.hostname + ":8082");
     ws.onopen = function () {
     };
     ws.onerror = function (error) {
@@ -45,7 +73,7 @@
       'x': [], 
       'y': [],
       'width': 1,
-      'color': '#000000'
+      'color': "#25c900"
       };
 
     var paint = false;
@@ -53,32 +81,15 @@
 
     var imgData;
     var ctx = c.getContext("2d");
+    ctx.imageSmoothingEnabled = false;
+    
+    c.addEventListener('touchstart', startStroke);
+    c.addEventListener('touchmove', moveStroke);
+    c.addEventListener('touchend', endStroke);
 
-    c.addEventListener('mousedown', function(e) {
-      paint = true;
-      saveStroke(e);
-    })
-
-    c.addEventListener('mousemove', function(e){
-      if (paint) {
-        saveStroke(e);
-        drawStroke(stroke);
-        counter++;
-      }
-
-      if(counter > 5) {
-        socketSend('stroke', stroke);
-        counter = 0;
-      }
-    })
-
-    c.addEventListener('mouseup', function(e){
-      paint = false;
-      drawStroke(stroke);
-      saveImage();
-      socketSend('stroke', stroke);
-      clearStroke();
-    })
+    c.addEventListener('mousedown', startStroke);
+    c.addEventListener('mousemove', moveStroke);
+    c.addEventListener('mouseup', endStroke);
 
     function saveImage(){
       imgData = ctx.getImageData(0, 0, 500, 500);
@@ -94,6 +105,7 @@
     }
 
     function drawStroke(s){
+      ctx.strokeStyle = s.color;
       ctx.beginPath();
       ctx.moveTo(s.x[0], s.y[0]);
       for (var i = 1; i < s.x.length; i++) {
@@ -101,10 +113,31 @@
       }
       ctx.stroke();
     }
+    
+    function startStroke(e){
+      paint = true;
+      saveCoordinates(e);
+    }
+    
+    function moveStroke(e){
+      if (paint) {
+        saveCoordinates(e);
+        drawStroke(stroke);
+        counter++;
+      }
 
-    function saveStroke(e){
-      stroke.x.push(e.offsetX);
-      stroke.y.push(e.offsetY);
+      if(counter > 5) {
+        socketSend('stroke', stroke);
+        counter = 0;
+      }
+    }
+    
+    function endStroke(e){
+      paint = false;
+      drawStroke(stroke);
+      saveImage();
+      socketSend('stroke', stroke);
+      clearStroke();
     }
 
     function clearStroke(){
@@ -113,70 +146,26 @@
       counter = 0;
     }
     
+    function saveCoordinates(e) {
+      if (e.touches) {
+        if (e.touches.length == 1) {
+          var touch = e.touches[0];
+          stroke.x.push(touch.pageX-touch.target.offsetLeft); //minus border width
+          stroke.y.push(touch.pageY-touch.target.offsetTop);
+          e.preventDefault();
+        }
+      } else {
+        stroke.x.push(e.offsetX);
+        stroke.y.push(e.offsetY);
+      }
+    }
+    
     function socketSend(type, data){
       var d = {};
       d.type = type;
       d.data = data;
       console.log(d);
       ws.send(JSON.stringify(d));
-    }
-    
-        // Define some variables to keep track of the touch position
-    var touchX,touchY;
-
-    c.addEventListener('touchstart', function(e) {
-        getTouchPos(e);
-        paint = true;
-        stroke.x.push(touchX);
-        stroke.y.push(touchY);
-        // Prevents an additional mousedown event being triggered
-        event.preventDefault();
-    })
-
-    c.addEventListener('touchmove', function(e) { 
-        // Update the touch co-ordinates
-        getTouchPos(e);
-        if (paint) {
-          stroke.x.push(touchX);
-          stroke.y.push(touchY);
-          drawStroke(stroke);
-          counter++;
-        }
-
-        if(counter > 5) {
-          socketSend('stroke', stroke);
-          counter = 0;
-        }
-
-        // During a touchmove event, unlike a mousemove event, we don't need to check if the touch is engaged, since there will always be contact with the screen by definition.
-
-        // Prevent a scrolling action as a result of this touchmove triggering.
-        event.preventDefault();
-    })
-    
-    c.addEventListener('touchend', function(e){
-      paint = false;
-      drawStroke(stroke);
-      saveImage();
-      socketSend('stroke', stroke);
-      clearStroke();
-    })
-
-    // Get the touch position relative to the top-left of the canvas
-    // When we get the raw values of pageX and pageY below, they take into account the scrolling on the page
-    // but not the position relative to our target div. We'll adjust them using "target.offsetLeft" and
-    // "target.offsetTop" to get the correct values in relation to the top left of the canvas.
-    function getTouchPos(e) {
-        if (!e)
-            var e = event;
-
-        if (e.touches) {
-            if (e.touches.length == 1) { // Only deal with one finger
-                var touch = e.touches[0]; // Get the information for finger #1
-                touchX=touch.pageX-touch.target.offsetLeft;
-                touchY=touch.pageY-touch.target.offsetTop;
-            }
-        }
     }
 
   </script>
