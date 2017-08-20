@@ -127,7 +127,8 @@
     c.addEventListener('touchstart', function(e) {
         getTouchPos(e);
         paint = true;
-        saveStroke(e);
+        stroke.x.push(touchX);
+        stroke.y.push(touchY);
         // Prevents an additional mousedown event being triggered
         event.preventDefault();
     })
@@ -136,7 +137,8 @@
         // Update the touch co-ordinates
         getTouchPos(e);
         if (paint) {
-          saveStroke(e);
+          stroke.x.push(touchX);
+          stroke.y.push(touchY);
           drawStroke(stroke);
           counter++;
         }
