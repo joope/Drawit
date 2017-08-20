@@ -9,30 +9,30 @@
   style="
     margin: 0; 
     user-select: none;
-    background-color: beige;">
+    background-color: #313131;">
     
   <canvas
     id="cx"
     style="
       display: block; 
       margin: 10px auto 10px auto;
-      background-color: white;"
+      background-color: beige;"
     width="500" height="500">
   </canvas>
   <div 
     class="wheel" 
     id="colorWheel" 
     style="
-      width: 320px;
-      height: 320px;
+      width: 200px;
+      height: 200px;
       margin: 10px auto;">
   </div>
   <script src="iro.min.js"></script>
   <script>
 
     var colorWheel = iro.ColorWheel("#colorWheel", {
-      width: 320,
-      height: 320,
+      width: 200,
+      height: 200,
       padding: 4,
       sliderMargin: 24,
       markerRadius: 8,
@@ -45,18 +45,14 @@
     });
     
     var ws = new WebSocket("ws://" + location.hostname + ":8082");
-    ws.onopen = function () {
-    };
+    
     ws.onerror = function (error) {
       console.log('WebSocket Error ' + error);
     };
     
-    // Log messages from the server
     ws.onmessage = function (e) {
       if (e.data){
-        
         var d = JSON.parse(e.data);  
-        console.log(d);
         if (d['type'] == 'stroke') {
           drawStroke(d.data);
         }
@@ -161,11 +157,21 @@
     }
     
     function socketSend(type, data){
+      if(ws.readyState !== ws.OPEN){
+         console.log('disconnected');
+         reconnect();
+         return;
+      }
+    
       var d = {};
       d.type = type;
       d.data = data;
       console.log(d);
       ws.send(JSON.stringify(d));
+    }
+    
+    function reconnect(){
+      ws = new WebSocket("ws://" + location.hostname + ":8082");
     }
 
   </script>
