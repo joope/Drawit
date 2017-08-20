@@ -18,8 +18,9 @@ const wss = new WebSocket.Server({ port: 8082 });
 wss.on('connection', function connection(ws) {
   ws.on('message', function incoming(data) {
     d = JSON.parse(data);
-    if(d.type === 'save') {
-      console.log('save');
+    if(d.type === 'image') {
+      db.set('image', d.data, function(){
+      })
     }
     
     if(d.type === 'stroke') {      
@@ -30,7 +31,12 @@ wss.on('connection', function connection(ws) {
       });
     }
   });
-  
+  db.get('image', function(err, reply){
+    var init = {};
+    init.type = 'init';
+    init.data = reply;
+    ws.send(JSON.stringify(init));
+  })
 });
 
 

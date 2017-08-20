@@ -5,10 +5,10 @@
   <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
   <title>Draw</title>
 </head>
-<body>
+<body style="margin: 0;">
   <canvas
     id="cx"
-    style="display: block; margin: 0 auto; border: 1px solid gray;"
+    style="display: block; margin: 0 auto; border: 10px solid gray;"
     width="500" height="500">
   </canvas>
   <button id="get">get</button>
@@ -19,26 +19,34 @@
     
     ws.onopen = function () {
     };
+    ws.onerror = function (error) {
+      console.log('WebSocket Error ' + error);
+    };
     
     // Log messages from the server
     ws.onmessage = function (e) {
       if (e.data){
+        
         var d = JSON.parse(e.data);  
+        console.log(d);
         if (d['type'] == 'stroke') {
           drawStroke(d.data);
         }
-        if (d['type'] == 'image'){
-          ctx.putImageData(d.data, 0, 0);
+        if (d['type'] == 'init'){
+          loadImage(d.data);
         }
       }
 
     };
 
     var c = document.querySelector('#cx');
-    var get = document.querySelector("#get");
-    var put = document.querySelector("#put");
 
-    var stroke = {'x': [], 'y': []};
+    var stroke = {
+      'x': [], 
+      'y': [],
+      'width': 1,
+      'color': '#000000'
+      };
 
     var paint = false;
     var counter = 0;
@@ -54,12 +62,12 @@
     c.addEventListener('mousemove', function(e){
       if (paint) {
         saveStroke(e);
+        drawStroke(stroke);
         counter++;
       }
 
       if(counter > 5) {
-        drawStroke(stroke);
-        sendStroke();
+        socketSend('stroke', stroke);
         counter = 0;
       }
     })
@@ -67,15 +75,23 @@
     c.addEventListener('mouseup', function(e){
       paint = false;
       drawStroke(stroke);
+      saveImage();
+      socketSend('stroke', stroke);
       clearStroke();
     })
 
-    get.addEventListener('click', function(e){
+    function saveImage(){
       imgData = ctx.getImageData(0, 0, 500, 500);
-    })
-    put.addEventListener('click', function(e){
-      ctx.putImageData(imgData, 0, 0);
-    })
+      socketSend('image', c.toDataURL());
+    }
+    
+    function loadImage(image) {
+      var img = new Image();
+      img.src = image;
+      img.onload = function(){
+        ctx.drawImage(this, 0, 0);
+      }
+    }
 
     function drawStroke(s){
       ctx.beginPath();
@@ -97,11 +113,12 @@
       counter = 0;
     }
     
-    function sendStroke(){
-      var data = {};
-      data.type = 'stroke';
-      data.data = stroke;
-      ws.send(JSON.stringify(data));
+    function socketSend(type, data){
+      var d = {};
+      d.type = type;
+      d.data = data;
+      console.log(d);
+      ws.send(JSON.stringify(d));
     }
 
   </script>
