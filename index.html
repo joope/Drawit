@@ -15,7 +15,7 @@
   <button id="put">put</button>
   <script>
 
-    var ws = new WebSocket('ws://localhost:8082');
+    var ws = new WebSocket("ws://" + location.hostname + ":8082");
     
     ws.onopen = function () {
     };
