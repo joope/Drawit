@@ -26,7 +26,7 @@
     class="wheel" 
     id="colorWheel" 
     style="
-      display: none;
+      display: block;
       width: 150px;
       height: 150px;
       margin: 10px auto;
@@ -39,19 +39,19 @@
     class="modeSelector"
     id="modeSelector"
     style="
-      display: block;
+      display: none;
       position: fixed;
       left: 15px;
       bottom: 10px;
       padding: 10px;
       border-radius: 10px;
-      background-color: #efc72e;
+      background-color: #888;
       border: none;
       box-shadow: 5px 5px 10px #464646;
       font-size: 24px;
     "><img 
-      src="draw.svg" 
-      alt="Draw"
+      src="move.svg" 
+      alt="ModeSelect"
       style="width: 50px; height: 50px;">
   </button>
   <script src="iro.min.js"></script>
@@ -63,13 +63,13 @@
       padding: 4,
       sliderMargin: 24,
       markerRadius: 8,
-      color: "#25c900",
+      color: "#666666",
       CSS: {} // apply colors to any elements
     });
     
     colorWheel.on("color:change", function(color){
       stroke.color = color.hexString;
-      btn.style['background-color'] = color.hexString;
+      //btn.style['background-color'] = color.hexString;
     });
     
     var ws = new WebSocket("ws://" + location.hostname + ":8082");
@@ -99,11 +99,11 @@
       'x': [], 
       'y': [],
       'width': 1,
-      'color': "#25c900"
+      'color': "#666666"
       };
 
     var paint = false;
-    var drawingMode = false;
+    var drawingMode = true;
     var counter = 0;
 
     var imgData;
@@ -117,14 +117,12 @@
     c.addEventListener('mousemove', moveStroke);
     c.addEventListener('mouseup', endStroke);
     
-    /* document.body.addEventListener('touchstart', touchInit)
+    document.body.addEventListener('touchstart', touchInit)
     
     function touchInit() {
       btn.style.display = 'block';
-      drawingMode = false;
       document.body.removeEventListener('touchstart', touchInit);
     }
-    */
     
     function modeSelect() {
       drawingMode = !drawingMode;
@@ -172,6 +170,14 @@
       if (paint) {
         saveCoordinates(e);
         drawStroke(stroke);
+        
+        counter++;		
+		
+        if(counter >= 3) {
+          socketSend('stroke', stroke);		
+          clearStroke();		
+          saveCoordinates(e);		
+        }
       }
 
 
@@ -205,8 +211,10 @@
         y = e.offsetY;
       }
       var scale = c_w / c.offsetWidth;
-      stroke.x.push(parseInt(scale * x));
-      stroke.y.push(parseInt(scale * y));
+      if (scale != null && x != null && y != null) {
+        stroke.x.push(parseInt(scale * x));
+        stroke.y.push(parseInt(scale * y));
+      }
     }
     
     function socketSend(type, data){
