@@ -31,7 +31,7 @@
       height: 150px;
       margin: 10px auto;
       position: fixed!important;
-      left: 0px;
+      right: 0px;
       bottom: 0px;">
   </div>
   <button
@@ -41,7 +41,7 @@
     style="
       display: block;
       position: fixed;
-      right: 15px;
+      left: 15px;
       bottom: 10px;
       padding: 10px;
       border-radius: 10px;
@@ -69,6 +69,7 @@
     
     colorWheel.on("color:change", function(color){
       stroke.color = color.hexString;
+      btn.style['background-color'] = color.hexString;
     });
     
     var ws = new WebSocket("ws://" + location.hostname + ":8082");
@@ -171,14 +172,6 @@
       if (paint) {
         saveCoordinates(e);
         drawStroke(stroke);
-        counter++;
-
-        if(counter >= 10) {
-          socketSend('stroke', stroke);
-          clearStroke();
-          saveCoordinates(e);
-        }
-        
       }
 
 
