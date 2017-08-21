@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Draw</title>
 </head>
 <body 
@@ -15,10 +15,9 @@
     id="cx"
     style="
       display: block; 
-      margin: 0 auto 10px auto;
+      margin: 0 auto;
       background-color: beige;
-      width: 100%;
-      max-width: 1000px;
+      width: 1000px;
       " 
     width="500"
     height="500">
@@ -27,16 +26,40 @@
     class="wheel" 
     id="colorWheel" 
     style="
-      width: 200px;
-      height: 200px;
-      margin: 10px auto;">
+      display: none;
+      width: 150px;
+      height: 150px;
+      margin: 10px auto;
+      position: fixed!important;
+      left: 0px;
+      bottom: 0px;">
   </div>
+  <button
+    onClick=modeSelect()
+    class="modeSelector"
+    id="modeSelector"
+    style="
+      display: block;
+      position: fixed;
+      right: 15px;
+      bottom: 10px;
+      padding: 10px;
+      border-radius: 10px;
+      background-color: #efc72e;
+      border: none;
+      box-shadow: 5px 5px 10px #464646;
+      font-size: 24px;
+    "><img 
+      src="draw.svg" 
+      alt="Draw"
+      style="width: 50px; height: 50px;">
+  </button>
   <script src="iro.min.js"></script>
   <script>
 
     var colorWheel = iro.ColorWheel("#colorWheel", {
-      width: 200,
-      height: 200,
+      width: 150,
+      height: 150,
       padding: 4,
       sliderMargin: 24,
       markerRadius: 8,
@@ -64,10 +87,11 @@
           loadImage(d.data);
         }
       }
-
     };
 
     var c = document.querySelector('#cx');
+    var btn = document.querySelector('#modeSelector');
+    var clr = document.querySelector('#colorWheel');
     var c_w = 500;
 
     var stroke = {
@@ -78,11 +102,11 @@
       };
 
     var paint = false;
+    var drawingMode = false;
     var counter = 0;
 
     var imgData;
     var ctx = c.getContext("2d");
-    ctx.imageSmoothingEnabled = true;
     
     c.addEventListener('touchstart', startStroke);
     c.addEventListener('touchmove', moveStroke);
@@ -91,8 +115,29 @@
     c.addEventListener('mousedown', startStroke);
     c.addEventListener('mousemove', moveStroke);
     c.addEventListener('mouseup', endStroke);
+    
+    /* document.body.addEventListener('touchstart', touchInit)
+    
+    function touchInit() {
+      btn.style.display = 'block';
+      drawingMode = false;
+      document.body.removeEventListener('touchstart', touchInit);
+    }
+    */
+    
+    function modeSelect() {
+      drawingMode = !drawingMode;
+      console.log(btn.firstChild);
+      if(drawingMode) {
+        btn.firstChild.src = "move.svg"
+        clr.style.display = "block";
+      } else {
+        btn.firstChild.src = "draw.svg"
+        clr.style.display = "none";
+      }
+    }
 
-    function saveImage(){
+    function saveImage() {
       imgData = ctx.getImageData(0, 0, 500, 500);
       socketSend('image', c.toDataURL());
     }
@@ -115,26 +160,31 @@
       ctx.stroke();
     }
     
-    function startStroke(e){
-      paint = true;
-      console.log(e);
-      saveCoordinates(e);
+    function startStroke(e) {
+      if (drawingMode) {
+        paint = true;
+        saveCoordinates(e);
+      }
     }
     
-    function moveStroke(e){
+    function moveStroke(e) {
       if (paint) {
         saveCoordinates(e);
         drawStroke(stroke);
         counter++;
+
+        if(counter >= 10) {
+          socketSend('stroke', stroke);
+          clearStroke();
+          saveCoordinates(e);
+        }
+        
       }
 
-      if(counter > 5) {
-        socketSend('stroke', stroke);
-        counter = 0;
-      }
+
     }
     
-    function endStroke(e){
+    function endStroke(e) {
       paint = false;
       drawStroke(stroke);
       saveImage();
@@ -142,7 +192,7 @@
       clearStroke();
     }
 
-    function clearStroke(){
+    function clearStroke() {
       stroke.x = [];
       stroke.y = [];
       counter = 0;
@@ -151,7 +201,7 @@
     function saveCoordinates(e) {
       var x, y;
       if (e.touches) {
-        if (e.touches.length == 1) {
+        if (e.touches.length == 1 && drawingMode) {
           var touch = e.touches[0];
           x = touch.pageX-touch.target.offsetLeft; //minus border width
           y = touch.pageY-touch.target.offsetTop;
@@ -162,7 +212,6 @@
         y = e.offsetY;
       }
       var scale = c_w / c.offsetWidth;
-      console.log(scale, x, y);
       stroke.x.push(parseInt(scale * x));
       stroke.y.push(parseInt(scale * y));
     }
@@ -177,7 +226,6 @@
       var d = {};
       d.type = type;
       d.data = data;
-      console.log(d);
       ws.send(JSON.stringify(d));
     }
     
