@@ -79,6 +79,7 @@
     };
     
     ws.onmessage = function (e) {
+      console.log('receive message');
       if (e.data){
         var d = JSON.parse(e.data);  
         if (d['type'] == 'stroke') {
@@ -135,11 +136,6 @@
         clr.style.display = "none";
       }
     }
-
-    function saveImage() {
-      imgData = ctx.getImageData(0, 0, 500, 500);
-      socketSend('image', c.toDataURL());
-    }
     
     function loadImage(image) {
       var img = new Image();
@@ -179,14 +175,11 @@
           saveCoordinates(e);		
         }
       }
-
-
     }
     
     function endStroke(e) {
       paint = false;
       drawStroke(stroke);
-      saveImage();
       socketSend('stroke', stroke);
       clearStroke();
     }
