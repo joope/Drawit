@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Draw</title>
+</head>
+<body 
+  style="
+    margin: 0; 
+    user-select: none;
+    background-color: #313131;">
+    
+  <canvas
+    id="cx"
+    style="
+      display: block; 
+      margin: 0 auto;
+      background-color: beige;
+      width: 1000px;
+      " 
+    width="500"
+    height="500">
+  </canvas>
+  <script>
+
+    var ws = new WebSocket("ws://" + location.hostname + ":8082");
+    
+    ws.onerror = function (error) {
+      console.log('WebSocket Error ' + error);
+    };
+    
+    ws.onmessage = function (e) {
+      if (e.data){
+        var d = JSON.parse(e.data);  
+        if (d['type'] == 'stroke') {
+          drawStroke(d.data);
+        }
+        if (d['type'] == 'init'){
+          loadImage(d.data);
+        }
+      }
+    };
+
+    var can = document.getElementById('cx');
+    var c_w = 500;
+
+    var imgData;
+    var ctx = can.getContext("2d");
+
+    function saveImage() {
+      imgData = ctx.getImageData(0, 0, 500, 500);
+      socketSend('image', can.toDataURL());
+    }
+    
+    function loadImage(image) {
+      var img = new Image();
+      img.src = image;
+      img.onload = function(){
+        ctx.drawImage(this, 0, 0);
+      }
+    }
+
+    function drawStroke(s) {
+      ctx.strokeStyle = s.color;
+      ctx.beginPath();
+      ctx.moveTo(s.x[0], s.y[0]);
+      for (var i = 1; i < s.x.length; i++) {
+        ctx.lineTo(s.x[i], s.y[i]);
+      }
+      ctx.stroke();
+      saveImage();
+    }
+    
+    
+    function socketSend(type, data){
+      if(ws.readyState !== ws.OPEN){
+         console.log('disconnected');
+         reconnect();
+         return;
+      }
+    
+      var d = {};
+      d.type = type;
+      d.data = data;
+      ws.send(JSON.stringify(d));
+    }
+    
+    function reconnect(){
+      ws = new WebSocket("ws://" + location.hostname + ":8082");
+    }
+
+  </script>
+</body>
+</html>
