@@ -22,25 +22,19 @@
     width="500"
     height="500">
   </canvas>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
   <script>
 
-    var ws = new WebSocket("ws://" + location.hostname + ":8082");
+    var socket = io();
     
-    ws.onerror = function (error) {
-      console.log('WebSocket Error ' + error);
-    };
-    
-    ws.onmessage = function (e) {
-      if (e.data){
-        var d = JSON.parse(e.data);  
-        if (d['type'] == 'stroke') {
-          drawStroke(d.data);
-        }
-        if (d['type'] == 'init'){
-          loadImage(d.data);
-        }
-      }
-    };
+    socket.on('stroke', function(data) {
+      drawStroke(data);
+      saveImage();
+    });
+
+    socket.on('init', function(image) {
+      loadImage(image);
+    })
 
     var can = document.getElementById('cx');
     var c_w = 500;
@@ -50,7 +44,7 @@
 
     function saveImage() {
       imgData = ctx.getImageData(0, 0, 500, 500);
-      socketSend('image', can.toDataURL());
+      socket.emit('save', can.toDataURL());
     }
     
     function loadImage(image) {
@@ -69,25 +63,6 @@
         ctx.lineTo(s.x[i], s.y[i]);
       }
       ctx.stroke();
-      saveImage();
-    }
-    
-    
-    function socketSend(type, data){
-      if(ws.readyState !== ws.OPEN){
-         console.log('disconnected');
-         reconnect();
-         return;
-      }
-    
-      var d = {};
-      d.type = type;
-      d.data = data;
-      ws.send(JSON.stringify(d));
-    }
-    
-    function reconnect(){
-      ws = new WebSocket("ws://" + location.hostname + ":8082");
     }
 
   </script>

@@ -76,10 +76,12 @@
     var socket = io();
     
     socket.on('stroke', function(data) {
+    console.log('get stroke');
       drawStroke(data);
     });
 
     socket.on('init', function(image) {
+      console.log('get init');
       loadImage(image);
     })
 
@@ -161,6 +163,7 @@
         counter++;		
 		
         if(counter >= 3) {
+          console.log('send stroke');
           socket.emit('stroke', stroke);		
           clearStroke();		
           saveCoordinates(e);
