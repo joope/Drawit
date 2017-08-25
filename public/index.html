@@ -26,7 +26,7 @@
     class="wheel" 
     id="colorWheel" 
     style="
-      display: block;
+      display: none;
       width: 150px;
       height: 150px;
       margin: 10px auto;
@@ -39,7 +39,7 @@
     class="modeSelector"
     id="modeSelector"
     style="
-      display: none;
+      display: block;
       position: fixed;
       left: 15px;
       bottom: 10px;
@@ -64,7 +64,7 @@
       padding: 4,
       sliderMargin: 24,
       markerRadius: 8,
-      color: "#e6e6e6",
+      color: "#ff412b",
       CSS: {} // apply colors to any elements
     });
     
@@ -94,11 +94,11 @@
       'x': [], 
       'y': [],
       'width': 1,
-      'color': "#e6e6e6"
+      'color': "#ff412b"
       };
 
     var paint = false;
-    var drawingMode = true;
+    var drawingMode = false;
     var counter = 0;
 
     var imgData;
@@ -112,18 +112,19 @@
     c.addEventListener('mousemove', moveStroke);
     c.addEventListener('mouseup', endStroke);
     
-    document.body.addEventListener('touchstart', touchInit)
+   /* document.body.addEventListener('touchstart', touchInit)
     
     function touchInit() {
       btn.style.display = 'block';
       document.body.removeEventListener('touchstart', touchInit);
-    }
+    } */
     
     function modeSelect() {
       drawingMode = !drawingMode;
       if(drawingMode) {
         btn.firstChild.src = "draw.svg"
         clr.style.display = "block";
+        
       } else {
         btn.firstChild.src = "move.svg"
         clr.style.display = "none";
