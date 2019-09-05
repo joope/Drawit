@@ -1,10 +1,9 @@
 const express = require('express');
 const redis = require('redis');
 const path = require('path');
-
 const db = redis.createClient();
 const app = express();
-const server = require('http').Server(app);  
+const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
 
@@ -20,7 +19,7 @@ db.on('connect', function(){
 
 io.on('connection', function connection(client) {
   console.log(client.id + ' connected');
-  
+
   db.get('image', function(err, reply) {
     client.emit('init', reply);
   })
@@ -29,17 +28,15 @@ io.on('connection', function connection(client) {
     db.set('image', data, function(){
     })
   })
-  
+
   client.on('stroke', function(stroke) {
     // do some checks here
     client.broadcast.emit('stroke', stroke);
   })
-  
+
   client.on('disconnect', function(){
     console.log(client.id + ' disconnected');
   })
-
 });
-
 
 server.listen(8080);

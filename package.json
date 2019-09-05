@@ -4,7 +4,9 @@
   "description": "Shared drawing pad",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "forever start app.js && forever start browser.js",
+    "forever:ls": "forever list",
+    "forever:stop": "forever stopall"
   },
   "repository": {
     "type": "git",
@@ -17,12 +19,10 @@
   },
   "homepage": "https://github.com/joope/Drawit#readme",
   "dependencies": {
-    "express": "^4.15.4",
+    "express": "^4.17.1",
+    "forever": "^1.0.0",
+    "puppeteer": "^1.19.0",
     "redis": "^2.8.0",
-    "socket.io": "^2.0.3"
-  },
-  "optionalDependencies": {
-    "bufferutil": "^3.0.2",
-    "utf-8-validate": "^3.0.3"
+    "socket.io": "^2.2.0"
   }
 }

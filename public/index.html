@@ -5,28 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Draw</title>
 </head>
-<body 
+<body
   style="
-    margin: 0; 
+    margin: 0;
     user-select: none;
     background-color: #313131;">
-    
+
   <canvas
     id="cx"
     style="
-      display: block; 
+      display: block;
       margin: 0 auto;
       background-color: beige;
       width: 1000px;
-      " 
+      "
     width="500"
     height="500">
   </canvas>
-  <div 
-    class="wheel" 
-    id="colorWheel" 
+  <div
+    class="wheel"
+    id="colorWheel"
     style="
-      display: none;
+      display: block;
       width: 150px;
       height: 150px;
       margin: 10px auto;
@@ -34,7 +34,7 @@
       right: 0px;
       bottom: 0px;">
   </div>
-  <button
+  <!-- <button
     onClick=modeSelect()
     class="modeSelector"
     id="modeSelector"
@@ -49,32 +49,32 @@
       border: none;
       box-shadow: 5px 5px 10px #464646;
       font-size: 24px;
-    "><img 
-      src="draw.svg" 
+    "><img
+      src="draw.svg"
       alt="ModeSelect"
       style="width: 50px; height: 50px;">
-  </button>
+  </button> -->
   <script src="iro.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.3/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script>
-
+    var randomColor = "#" + Math.floor(Math.random()*16777215).toString(16);
     var colorWheel = iro.ColorWheel("#colorWheel", {
       width: 150,
       height: 150,
       padding: 4,
       sliderMargin: 24,
       markerRadius: 8,
-      color: "#ff412b",
+      color: randomColor,
       CSS: {} // apply colors to any elements
     });
-    
+
     colorWheel.on("color:change", function(color){
       stroke.color = color.hexString;
-      btn.style['background-color'] = color.hexString;
+      // btn.style['background-color'] = color.hexString;
     });
-    
+
     var socket = io();
-    
+
     socket.on('stroke', function(data) {
     console.log('get stroke');
       drawStroke(data);
@@ -86,51 +86,56 @@
     })
 
     var c = document.querySelector('#cx');
-    var btn = document.querySelector('#modeSelector');
     var clr = document.querySelector('#colorWheel');
     var c_w = 500;
 
     var stroke = {
-      'x': [], 
+      'x': [],
       'y': [],
       'width': 1,
-      'color': "#ff412b"
+      'color': randomColor,
       };
 
     var paint = false;
-    var drawingMode = false;
+    var drawingMode = true;
     var counter = 0;
 
     var imgData;
     var ctx = c.getContext("2d");
-    
-    c.addEventListener('touchstart', startStroke);
+    // ctx.imageSmoothingEnabled= false;
+
+    c.addEventListener('touchstart', (e) => {
+      const { touches } = e;
+      if (touches && touches.length <= 1) {
+        startStroke(e)
+      }
+    });
     c.addEventListener('touchmove', moveStroke);
     c.addEventListener('touchend', endStroke);
 
     c.addEventListener('mousedown', startStroke);
     c.addEventListener('mousemove', moveStroke);
     c.addEventListener('mouseup', endStroke);
-    
+
    /* document.body.addEventListener('touchstart', touchInit)
-    
+
     function touchInit() {
       btn.style.display = 'block';
       document.body.removeEventListener('touchstart', touchInit);
     } */
-    
+
     function modeSelect() {
       drawingMode = !drawingMode;
-      if(drawingMode) {
-        btn.firstChild.src = "draw.svg"
-        clr.style.display = "block";
-        
-      } else {
-        btn.firstChild.src = "move.svg"
-        clr.style.display = "none";
-      }
+      // if(drawingMode) {
+      //   btn.firstChild.src = "draw.svg"
+      //   clr.style.display = "block";
+
+      // } else {
+      //   btn.firstChild.src = "move.svg"
+      //   clr.style.display = "none";
+      // }
     }
-    
+
     function loadImage(image) {
       var img = new Image();
       img.src = image;
@@ -148,30 +153,30 @@
       }
       ctx.stroke();
     }
-    
+
     function startStroke(e) {
       if (drawingMode) {
         paint = true;
         saveCoordinates(e);
       }
     }
-    
+
     function moveStroke(e) {
       if (paint) {
         saveCoordinates(e);
         drawStroke(stroke);
-        
-        counter++;		
-		
+
+        counter++;
+
         if(counter >= 3) {
           console.log('send stroke');
-          socket.emit('stroke', stroke);		
-          clearStroke();		
+          socket.emit('stroke', stroke);
+          clearStroke();
           saveCoordinates(e);
         }
       }
     }
-    
+
     function endStroke(e) {
       paint = false;
       drawStroke(stroke);
@@ -184,7 +189,7 @@
       stroke.y = [];
       counter = 0;
     }
-    
+
     function saveCoordinates(e) {
       var x, y;
       if (e.touches) {
@@ -204,7 +209,7 @@
         stroke.y.push(parseInt(scale * y));
       }
     }
-    
+
   </script>
 </body>
 </html>
