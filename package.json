@@ -1,6 +1,6 @@
 {
   "name": "drawit",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Shared drawing pad",
   "main": "index.js",
   "scripts": {
