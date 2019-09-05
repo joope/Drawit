@@ -26,7 +26,7 @@
     class="wheel"
     id="colorWheel"
     style="
-      display: block;
+      display: none;
       width: 150px;
       height: 150px;
       margin: 10px auto;
@@ -34,7 +34,7 @@
       right: 0px;
       bottom: 0px;">
   </div>
-  <!-- <button
+  <button
     onClick=modeSelect()
     class="modeSelector"
     id="modeSelector"
@@ -43,7 +43,7 @@
       position: fixed;
       left: 15px;
       bottom: 10px;
-      padding: 10px;
+      padding: 3vh;
       border-radius: 10px;
       background-color: #e6e6e6;
       border: none;
@@ -53,10 +53,11 @@
       src="draw.svg"
       alt="ModeSelect"
       style="width: 50px; height: 50px;">
-  </button> -->
+  </button>
   <script src="iro.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
   <script>
+    var btn = document.querySelector('#modeSelector');
     var randomColor = "#" + Math.floor(Math.random()*16777215).toString(16);
     var colorWheel = iro.ColorWheel("#colorWheel", {
       width: 150,
@@ -70,7 +71,7 @@
 
     colorWheel.on("color:change", function(color){
       stroke.color = color.hexString;
-      // btn.style['background-color'] = color.hexString;
+      btn.style['background-color'] = color.hexString;
     });
 
     var socket = io();
@@ -97,7 +98,7 @@
       };
 
     var paint = false;
-    var drawingMode = true;
+    var drawingMode = false;
     var counter = 0;
 
     var imgData;
@@ -126,14 +127,14 @@
 
     function modeSelect() {
       drawingMode = !drawingMode;
-      // if(drawingMode) {
-      //   btn.firstChild.src = "draw.svg"
-      //   clr.style.display = "block";
+      if(drawingMode) {
+        btn.firstChild.src = "draw.svg"
+        clr.style.display = "block";
 
-      // } else {
-      //   btn.firstChild.src = "move.svg"
-      //   clr.style.display = "none";
-      // }
+      } else {
+        btn.firstChild.src = "move.svg"
+        clr.style.display = "none";
+      }
     }
 
     function loadImage(image) {
