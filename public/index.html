@@ -56,12 +56,10 @@
     var socket = io();
 
     socket.on('stroke', function(data) {
-    console.log('get stroke');
       drawStroke(data);
     });
 
     socket.on('init', function(image) {
-      console.log('get init');
       loadImage(image);
     })
 
