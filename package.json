@@ -4,7 +4,7 @@
   "description": "Shared drawing pad",
   "main": "index.js",
   "scripts": {
-    "start": "forever start app.js && forever start browser.js",
+    "start": "forever -w app.js",
     "forever:ls": "forever list",
     "forever:stop": "forever stopall"
   },

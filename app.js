@@ -1,11 +1,14 @@
 const express = require('express');
 const redis = require('redis');
 const path = require('path');
-const db = redis.createClient();
 const app = express();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
 
+const port = process.env.REDIS_PORT || 6379;
+const host = process.env.REDIS_HOST || 'localhost';
+
+const db = redis.createClient(port, host);
 
 app.use(express.static('public'));
 
